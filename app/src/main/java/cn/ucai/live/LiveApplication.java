@@ -8,9 +8,9 @@ import com.ucloud.live.UEasyStreaming;
 /**
  * Created by wei on 2016/5/27.
  */
-public class ListApplication extends Application{
+public class LiveApplication extends Application{
 
-  private static ListApplication instance;
+  private static LiveApplication instance;
 
   @Override public void onCreate() {
     super.onCreate();
@@ -19,7 +19,7 @@ public class ListApplication extends Application{
     UEasyStreaming.initStreaming("publish3-key");
   }
 
-  public static ListApplication getInstance(){
+  public static LiveApplication getInstance(){
     return instance;
   }
 }
