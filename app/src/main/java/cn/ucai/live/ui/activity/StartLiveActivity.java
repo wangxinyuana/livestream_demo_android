@@ -283,24 +283,24 @@ public class StartLiveActivity extends LiveBaseActivity
             finish();
             return;
         }
-//        removeLive();
-//        showConfirmCloseLayout();
+        removeLive();
+        showConfirmCloseLayout();
     }
 
-//    private void removeLive() {
-//        NetDao.removeLive(StartLiveActivity.this, chatroomId, new OnCompleteListener<String>() {
-//            @Override
-//            public void onSuccess(String s) {
-//                L.e(TAG,"removeLive,s="+s);
-//
-//            }
+    private void removeLive() {
+        NetDao.removeLive(StartLiveActivity.this, chatroomId, new OnCompleteListener<String>() {
+            @Override
+            public void onSuccess(String s) {
+                L.e(TAG,"removeLive,s="+s);
 
-//            @Override
-//            public void onError(String error) {
-//
-//            }
-//        });
-//    }
+            }
+
+            @Override
+            public void onError(String error) {
+
+            }
+        });
+    }
 
     @OnClick(R.id.img_bt_switch_voice)
     void toggleMicrophone() {
