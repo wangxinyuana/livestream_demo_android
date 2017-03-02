@@ -3,6 +3,7 @@ package cn.ucai.live.data;
 import android.content.Context;
 
 import com.hyphenate.chat.EMGroup;
+import com.hyphenate.easeui.domain.User;
 
 import java.io.File;
 
@@ -131,6 +132,18 @@ public class NetDao {
     public static void loadLiveList(Context context, OnCompleteListener listener){
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_GET_ALL_CHATROOM)
+                .targetClass(String.class)
+                .execute(listener);
+    }
+    public static void creatLive(Context context, User user,OnCompleteListener listener){
+        OkHttpUtils<String> utils = new OkHttpUtils<>(context);
+        utils.setRequestUrl(I.REQUEST_CREATE_CHATROOM)
+                .addParam("auth","1IFgE")
+                .addParam("name",user.getMUserNick()+"的直播间")
+                .addParam("description",user.getMUserNick()+"的直播间")
+                .addParam("owner",user.getMUserName())
+                .addParam("maxusers","300")
+                .addParam("member",user.getMUserName())
                 .targetClass(String.class)
                 .execute(listener);
     }
