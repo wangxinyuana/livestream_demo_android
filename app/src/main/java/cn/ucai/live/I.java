@@ -221,7 +221,12 @@ public interface I {
 	String REQUEST_RECHARGE			 				= 		"live/recharge";
 	/** 客户端发送的用户给主播赠送礼物的请求 */
 	String REQUEST_GET_ALL_CHATROOM		 				= 		"live/getAllChatRoom";
+
+	/** 客户端发送的创建直播室 */
 	String REQUEST_CREATE_CHATROOM		 				= 		"live/createChatRoom";
+
+//	/** 客户端发送的删除直播室 */
+//	String REQUEST_DELETE_CHATROOM		 				= 		"live/createChatRoom";
 
 	String BACK_MAIN_FROM_CHAT                        =        "back_main_from_chat";
 

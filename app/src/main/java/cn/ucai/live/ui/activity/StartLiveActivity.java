@@ -22,10 +22,7 @@ import android.widget.Toast;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import cn.ucai.live.LiveHelper;
 import cn.ucai.live.data.NetDao;
-import cn.ucai.live.data.TestDataRepository;
-import cn.ucai.live.data.model.LiveRoom;
 import cn.ucai.live.data.model.LiveSettings;
 import cn.ucai.live.utils.CommonUtils;
 import cn.ucai.live.utils.L;
@@ -41,14 +38,12 @@ import com.hyphenate.chat.EMClient;
 import com.hyphenate.easeui.controller.EaseUI;
 import com.hyphenate.easeui.domain.User;
 import com.hyphenate.easeui.utils.EaseUserUtils;
-import com.hyphenate.easeui.widget.EaseAlertDialog;
 import com.hyphenate.easeui.widget.EaseImageView;
 import com.ucloud.common.util.DeviceUtils;
 import com.ucloud.live.UEasyStreaming;
 import com.ucloud.live.UStreamingProfile;
 import com.ucloud.live.widget.UAspectFrameLayout;
 
-import java.util.List;
 import java.util.Random;
 
 public class StartLiveActivity extends LiveBaseActivity
@@ -124,7 +119,7 @@ public class StartLiveActivity extends LiveBaseActivity
         }
         initEnv();
     }
-
+//直播的设置
     public void initEnv() {
         mSettings = new LiveSettings(this);
         if (mSettings.isOpenLogRecoder()) {
@@ -134,9 +129,10 @@ public class StartLiveActivity extends LiveBaseActivity
 
         //        UStreamingProfile.Stream stream = new UStreamingProfile.Stream(rtmpPushStreamDomain, "ucloud/" + mSettings.getPusblishStreamId());
         //hardcode
+        //视频流媒体
         UStreamingProfile.Stream stream =
                 new UStreamingProfile.Stream(rtmpPushStreamDomain, "ucloud/" + liveId);
-
+//设置直播相关的东西
         mStreamingProfile =
                 new UStreamingProfile.Builder().setVideoCaptureWidth(mSettings.getVideoCaptureWidth())
                         .setVideoCaptureHeight(mSettings.getVideoCaptureHeight())
@@ -150,6 +146,7 @@ public class StartLiveActivity extends LiveBaseActivity
         if (DeviceUtils.hasJellyBeanMr2()) {
             encodingType = UEasyStreaming.UEncodingType.MEDIA_CODEC;
         }
+        //直播流
         mEasyStreaming = new UEasyStreaming(this, encodingType);
         mEasyStreaming.setStreamingStateListener(this);
         mEasyStreaming.setAspectWithStreamingProfile(mPreviewContainer, mStreamingProfile);
@@ -208,8 +205,8 @@ public class StartLiveActivity extends LiveBaseActivity
      */
     @OnClick(R.id.btn_start) void startLive() {
         //demo为了测试方便，只有指定的账号才能开启直播
+        L.e(TAG,"startLive id="+liveId+"chatroomId"+chatroomId);
         if (chatroomId == null || chatroomId.equals("")) {
-            CommonUtils.showShortToast("获取直播数据失败");
             L.e(TAG, "id is null");
             pd = new ProgressDialog(StartLiveActivity.this);
             pd.setMessage("创建直播...");
@@ -254,12 +251,11 @@ public class StartLiveActivity extends LiveBaseActivity
 
                         if (id != null ) {
                             success = true;
-                            initLive(id);
+                           chatroomId=id;
                             startLiveByCatRoom();
                         }
                     }
-                    if (success) {
-
+                    if (!success) {
                         CommonUtils.showShortToast("创建直播失败");
                     }
                 }
@@ -277,12 +273,6 @@ public class StartLiveActivity extends LiveBaseActivity
 
     }
 
-    private void initLive(String id) {
-       // liveId = id;
-        chatroomId = id;
-       // initEnv();
-    }
-
     /**
      * 关闭直播显示直播成果
      */
@@ -293,8 +283,24 @@ public class StartLiveActivity extends LiveBaseActivity
             finish();
             return;
         }
-        showConfirmCloseLayout();
+//        removeLive();
+//        showConfirmCloseLayout();
     }
+
+//    private void removeLive() {
+//        NetDao.removeLive(StartLiveActivity.this, chatroomId, new OnCompleteListener<String>() {
+//            @Override
+//            public void onSuccess(String s) {
+//                L.e(TAG,"removeLive,s="+s);
+//
+//            }
+
+//            @Override
+//            public void onError(String error) {
+//
+//            }
+//        });
+//    }
 
     @OnClick(R.id.img_bt_switch_voice)
     void toggleMicrophone() {
