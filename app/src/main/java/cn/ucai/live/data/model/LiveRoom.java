@@ -96,6 +96,7 @@ public class LiveRoom implements Parcelable {
             return new LiveRoom[size];
         }
     };
+
     @Override
     public String toString() {
         return "LiveRoom{" +

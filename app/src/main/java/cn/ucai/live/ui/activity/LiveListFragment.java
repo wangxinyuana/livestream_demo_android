@@ -99,7 +99,7 @@ public class LiveListFragment extends Fragment {
         footLoadingPB = (ProgressBar)getView().findViewById(R.id.loading_bar);
         footLoadingText = (TextView) getView().findViewById(R.id.loading_text);
 //        listView.addFooterView(footView, null, false);
-        footLoadingLayout.setVisibility(View.GONE);
+//        footLoadingLayout.setVisibility(View.GONE);
 
         loadAndShowData();
         setListener();
@@ -178,7 +178,7 @@ public class LiveListFragment extends Fragment {
                 mSrl.setRefreshing(true);
                 mTvRefresh.setVisibility(View.VISIBLE);
                 cursor = null;
-                isFirstLoading=true;
+                isFirstLoading = true;
                 chatRoomList.clear();
                 loadAndShowData();
             }
@@ -236,7 +236,7 @@ public class LiveListFragment extends Fragment {
                             mSrl.setRefreshing(false);
                             mTvRefresh.setVisibility(View.GONE);
 //                            pb.setVisibility(View.INVISIBLE);
-                            footLoadingLayout.setVisibility(View.GONE);
+//                            footLoadingLayout.setVisibility(View.GONE);
                             Toast.makeText(getContext(), getResources().getString(R.string.failed_to_load_data), Toast.LENGTH_SHORT).show();
                         }
                     });
@@ -268,8 +268,6 @@ public class LiveListFragment extends Fragment {
     public void onResume() {
         super.onResume();
         L.e(TAG,"onResume");
-        cursor = null;
-        loadAndShowData();
     }
 
     static class LiveAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
