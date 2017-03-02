@@ -129,13 +129,13 @@ public class NetDao {
                    .targetClass(String.class)
                    .execute(listener);
            }
-    public static void loadLiveList(Context context, OnCompleteListener listener){
+    public static void loadLiveList(Context context, OnCompleteListener <String>listener){
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_GET_ALL_CHATROOM)
                 .targetClass(String.class)
                 .execute(listener);
     }
-    public static void creatLive(Context context, User user,OnCompleteListener listener){
+    public static void creatLive(Context context, User user,OnCompleteListener<String> listener){
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_CREATE_CHATROOM)
                 .addParam("auth","1IFgE")
@@ -147,7 +147,7 @@ public class NetDao {
                 .targetClass(String.class)
                 .execute(listener);
     }
-    public static void removeLive(Context context,String chatroomId,OnCompleteListener listener){
+    public static void removeLive(Context context,String chatroomId,OnCompleteListener<String>listener){
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_DELETE_CHATROOM)
                 .addParam("auth","1IFgE")
