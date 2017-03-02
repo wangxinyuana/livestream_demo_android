@@ -23,6 +23,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import cn.ucai.live.data.NetDao;
+import cn.ucai.live.data.model.LiveRoom;
 import cn.ucai.live.data.model.LiveSettings;
 import cn.ucai.live.utils.CommonUtils;
 import cn.ucai.live.utils.L;
@@ -114,10 +115,11 @@ public class StartLiveActivity extends LiveBaseActivity
                 userAvatar);
         EaseUserUtils.setAppUserNick(EMClient.getInstance().getCurrentUser(),
                 usernameView);
-        String id = getIntent().getStringExtra("LiveId");
-        if (id != null && !id.equals("")) {
-            liveId = id;
-            chatroomId = id;
+        LiveRoom liveRoom = getIntent().getParcelableExtra("liveroom");
+         L.e(TAG,"getIntent,liveRoom="+liveRoom);
+        if (liveRoom!=null){
+                liveId = liveRoom.getId();
+                chatroomId = liveRoom.getChatroomId();
         } else {
     liveId = (EMClient.getInstance().getCurrentUser());//TestDataRepository.getLiveRoomId
 //    chatroomId = TestDataRepository.getChatRoomId(EMClient.getInstance().getCurrentUser());
