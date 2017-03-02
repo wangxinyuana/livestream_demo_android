@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -18,19 +17,15 @@ import com.hyphenate.EMMessageListener;
 import com.hyphenate.EMValueCallBack;
 import com.hyphenate.chat.EMClient;
 import com.hyphenate.chat.EMCmdMessageBody;
-import com.hyphenate.chat.EMGroup;
 import com.hyphenate.chat.EMMessage;
 import com.hyphenate.chat.EMMessage.ChatType;
-import com.hyphenate.chat.EMMessage.Status;
 import com.hyphenate.chat.EMMessage.Type;
 import com.hyphenate.chat.EMOptions;
-import com.hyphenate.chat.EMTextMessageBody;
 import com.hyphenate.easeui.controller.EaseUI;
 import com.hyphenate.easeui.controller.EaseUI.EaseEmojiconInfoProvider;
 import com.hyphenate.easeui.controller.EaseUI.EaseSettingsProvider;
 import com.hyphenate.easeui.controller.EaseUI.EaseUserProfileProvider;
 import com.hyphenate.easeui.domain.EaseEmojicon;
-import com.hyphenate.easeui.domain.EaseEmojiconGroupEntity;
 import com.hyphenate.easeui.domain.EaseUser;
 import com.hyphenate.easeui.domain.User;
 import com.hyphenate.easeui.model.EaseAtMessageHelper;
@@ -45,27 +40,21 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import cn.ucai.live.data.NetDao;
 import cn.ucai.live.data.local.LiveDBManager;
 import cn.ucai.live.data.local.UserDao;
+import cn.ucai.live.data.model.Gift;
 import cn.ucai.live.data.model.Result;
 import cn.ucai.live.ui.activity.ChatActivity;
-import cn.ucai.live.ui.activity.LoginActivity;
 import cn.ucai.live.ui.activity.MainActivity;
 import cn.ucai.live.utils.L;
 import cn.ucai.live.utils.OnCompleteListener;
 import cn.ucai.live.utils.PreferenceManager;
 import cn.ucai.live.utils.ResultUtils;
 
-import static com.hyphenate.easeui.utils.EaseUserUtils.getAppUserInfo;
-import static com.hyphenate.easeui.utils.EaseUserUtils.getUserInfo;
-
 
 public class LiveHelper {
-
-
     /**
      * data sync listener
      */
@@ -89,7 +78,7 @@ public class LiveHelper {
     private Map<String, EaseUser> contactList;
 
     private Map<String, User> appContactList;
-
+    private Map<Integer,Gift> appGiftList;
 
     private static LiveHelper instance = null;
 
@@ -110,16 +99,17 @@ public class LiveHelper {
 
     private boolean isSyncingGroupsWithServer = false;
     private boolean isSyncingContactsWithServer = false;
+    private boolean isSyncingBlackListWithServer = false;
     private boolean isGroupsSyncedWithServer = false;
     private boolean isContactsSyncedWithServer = false;
     private boolean isBlackListSyncedWithServer = false;
-    private boolean isSyncingBlackListWithServer = false;
 
     private String username;
 
     private Context appContext;
 
     private UserDao userDao;
+
     private LocalBroadcastManager broadcastManager;
 
     private boolean isGroupAndContactListenerRegisted;
@@ -162,12 +152,44 @@ public class LiveHelper {
                 resolution = PreferenceManager.getInstance().getCallFrontCameraResolution();
             }
 
-
-
             setGlobalListeners();
             broadcastManager = LocalBroadcastManager.getInstance(appContext);
             initDbDao();
+            initGiftList();
         }
+    }
+
+    private void initGiftList() {
+        NetDao.loadAllGift(appContext, new OnCompleteListener<String>() {
+            @Override
+            public void onSuccess(String s) {
+                if (s!=null){
+                    Result result = ResultUtils.getListResultFromJson(s, Gift.class);
+                    if (result!=null && result.isRetMsg()){
+                        List<Gift> list = (List<Gift>) result.getRetData();
+                        if(list!=null && list.size()>0){
+                            L.e(TAG,"gift list="+list.size());
+                            Map<Integer, Gift> giftlist = new HashMap<>();
+                            for (Gift gift : list) {
+                                giftlist.put(gift.getId(), gift);
+                            }
+                            // save the contact list to cache
+                            getAppGiftList().clear();
+                            getAppGiftList().putAll(giftlist);
+                            // save the contact list to database
+                            UserDao dao = new UserDao(appContext);
+                            List<Gift> gifts = new ArrayList<Gift>(giftlist.values());
+                            dao.saveAppGiftList(gifts);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+
+            }
+        });
     }
 
 
@@ -188,9 +210,6 @@ public class LiveHelper {
         options.setMipushConfig("2882303761517426801", "5381742660801");
         //you need apply & set your own id if you want to use Huawei push notification
         options.setHuaweiPushAppId("10492024");
-
-        //set custom servers, commonly used in private deployment
-
 
         if (demoModel.isCustomAppkeyEnabled() && demoModel.getCutomAppkey() != null && !demoModel.getCutomAppkey().isEmpty()) {
             options.setAppKey(demoModel.getCutomAppkey());
@@ -325,21 +344,20 @@ public class LiveHelper {
                 // you can set what activity you want display when user click the notification
                 Intent intent = new Intent(appContext, ChatActivity.class);
                 // open calling activity if there is call
-                    ChatType chatType = message.getChatType();
-                    if (chatType == ChatType.Chat) { // single chat message
-                        intent.putExtra("userId", message.getFrom());
-                        intent.putExtra("chatType", LiveConstants.CHATTYPE_SINGLE);
-                    } else { // group chat message
-                        // message.getTo() is the group id
-                        intent.putExtra("userId", message.getTo());
-                        if(chatType == ChatType.GroupChat){
-                            intent.putExtra("chatType", LiveConstants.CHATTYPE_GROUP);
-                        }else{
-                            intent.putExtra("chatType", LiveConstants.CHATTYPE_CHATROOM);
-                        }
-
+                ChatType chatType = message.getChatType();
+                if (chatType == ChatType.Chat) { // single chat message
+                    intent.putExtra("userId", message.getFrom());
+                    intent.putExtra("chatType", LiveConstants.CHATTYPE_SINGLE);
+                } else { // group chat message
+                    // message.getTo() is the group id
+                    intent.putExtra("userId", message.getTo());
+                    if(chatType == ChatType.GroupChat){
+                        intent.putExtra("chatType", LiveConstants.CHATTYPE_GROUP);
+                    }else{
+                        intent.putExtra("chatType", LiveConstants.CHATTYPE_CHATROOM);
                     }
 
+                }
                 return intent;
             }
         });
@@ -475,7 +493,6 @@ public class LiveHelper {
      */
     public class MyContactListener implements EMContactListener {
 
-
         @Override
         public void onContactAdded(String s) {
 
@@ -501,7 +518,6 @@ public class LiveHelper {
 
         }
     }
-
 
 
     /**
@@ -601,7 +617,6 @@ public class LiveHelper {
             public void onMessageDeliveryAckReceived(List<EMMessage> list) {
 
             }
-
 
             @Override
             public void onMessageChanged(EMMessage message, Object change) {
@@ -735,8 +750,6 @@ public class LiveHelper {
         return username;
     }
 
-
-
     /**
      * update user list to cache and database
      *
@@ -750,7 +763,6 @@ public class LiveHelper {
         mList.addAll(contactList.values());
         demoModel.saveContactList(mList);
     }
-
 
     void endCall() {
         try {
@@ -872,48 +884,47 @@ public class LiveHelper {
     }
 
     public void asyncFetchContactsFromServer(final EMValueCallBack<List<String>> callback){
-       L.e(TAG,"asyncFetchContactsFromServer,isSyncingContactsWithServer"+isSyncingContactsWithServer);
         if(isSyncingContactsWithServer){
             return;
         }
 
         isSyncingContactsWithServer = true;
-        L.e(TAG,"asyncFetchContactsFromServer,isSyncingContactsWithServer"+isSyncingContactsWithServer);
 
-        /*if(isLoggedIn()){
-            NetDao.loadContact(appContext, EMClient.getInstance().getCurrentUser(),
-                    new OnCompleteListener<String>() {
-                        @Override
-                        public void onSuccess(String s) {
-                            if (s != null) {
-                                Result result = ResultUtils.getListResultFromJson(s, User.class);
-                                if (result != null && result.isRetMsg()) {
-                                    List<User> list = (List<User>) result.getRetData();
-                                    if (list!=null&&list.size()>0){
-                                        L.e(TAG,"list.size="+list.size());
-                                        Map<String,User> userMap=new HashMap<String, User>();
-                                        for (User u:list) {
-                                            EaseCommonUtils.setAppUserInitialLetter(u);
-                                            userMap.put(u.getMUserName(), u);
-                                        }
-                                        // save the contact list to cache
-                                        getAppContactList().clear();
-                                        getAppContactList().putAll(userMap);
-                                        // save the contact list to database
-                                        UserDao dao = new UserDao(appContext);
-                                        dao.saveAppContactList(list);
-                                        broadcastManager.sendBroadcast(new Intent(LiveConstants.ACTION_GROUP_CHANAGED));
-                                    }
-                                }
+//       if (isLoggedIn()){
+//           NetDao.loadContact(appContext, EMClient.getInstance().getCurrentUser(),
+//                   new OnCompleteListener<String>() {
+//                       @Override
+//                       public void onSuccess(String s) {
+//                           if (s!=null){
+//                               Result result = ResultUtils.getListResultFromJson(s, User.class);
+//                               if (result!=null && result.isRetMsg()){
+//                                   List<User> list = (List<User>) result.getRetData();
+//                                   if (list!=null && list.size()>0){
+//                                       L.e(TAG,"list.size="+list.size());
+//                                       Map<String, User> userMap = new HashMap<String, User>();
+//                                       for (User u : list) {
+//                                           EaseCommonUtils.setAppUserInitialLetter(u);
+//                                           userMap.put(u.getMUserName(), u);
+//                                       }
+//                                       // save the contact list to cache
+//                                       getAppContactList().clear();
+//                                       getAppContactList().putAll(userMap);
+//                                       // save the contact list to database
+//                                       UserDao dao = new UserDao(appContext);
+//                                       dao.saveAppContactList(list);
+//                                       broadcastManager.sendBroadcast(new Intent(LiveConstants.ACTION_CONTACT_CHANAGED));
+//                                   }
+//                               }
+//                           }
+//                       }
+//
+//                       @Override
+//                       public void onError(String error) {
+//
+//                       }
+//                   });
+//       }
 
-                            }
-                        }
-                        @Override
-                        public void onError(String error) {
-
-                        }
-                    });
-        }*/
         new Thread(){
             @Override
             public void run(){
@@ -927,7 +938,6 @@ public class LiveHelper {
                         notifyContactsSyncListener(false);
                         return;
                     }
-
 
                     Map<String, EaseUser> userlist = new HashMap<String, EaseUser>();
                     for (String username : usernames) {
@@ -952,18 +962,18 @@ public class LiveHelper {
                     //notify sync success
                     notifyContactsSyncListener(true);
 
-//                    getUserProfileManager().asyncFetchContactInfosFromServer(usernames,new EMValueCallBack<List<EaseUser>>() {
+//                   getUserProfileManager().asyncFetchContactInfosFromServer(usernames,new EMValueCallBack<List<EaseUser>>() {
 //
-//                        @Override
-//                        public void onSuccess(List<EaseUser> uList) {
-//                            updateContactList(uList);
-//                            getUserProfileManager().notifyContactInfosSyncListener(true);
-//                        }
+//                       @Override
+//                       public void onSuccess(List<EaseUser> uList) {
+//                           updateContactList(uList);
+//                           getUserProfileManager().notifyContactInfosSyncListener(true);
+//                       }
 //
-//                        @Override
-//                        public void onError(int error, String errorMsg) {
-//                        }
-//                    });
+//                       @Override
+//                       public void onError(int error, String errorMsg) {
+//                       }
+//                   });
                     if(callback != null){
                         callback.onSuccess(usernames);
                     }
@@ -1068,7 +1078,7 @@ public class LiveHelper {
     synchronized void reset(){
         isSyncingGroupsWithServer = false;
         isSyncingContactsWithServer = false;
-
+        isSyncingBlackListWithServer = false;
 
         demoModel.setGroupsSynced(false);
         demoModel.setContactSynced(false);
@@ -1147,6 +1157,7 @@ public class LiveHelper {
         mList.addAll(appContactList.values());
         demoModel.saveAppContactList(mList);
     }
+
     public void asyncGetCurrentUserInfo(Activity activity) {
         L.e("UserProfileManager","asyncGetCurrentUserInfo,username="+EMClient.getInstance().getCurrentUser());
         NetDao.getUserInfoByUsername(activity, EMClient.getInstance().getCurrentUser(), new OnCompleteListener<String>() {
@@ -1162,6 +1173,7 @@ public class LiveHelper {
                             //save user info to db
                             LiveHelper.getInstance().saveAppContact(user);
                             PreferenceManager.getInstance().setCurrentUserNick(user.getMUserNick());
+                            PreferenceManager.getInstance().setCurrentUserAvatar(user.getAvatar());
                         }
                     }
                 }
@@ -1173,4 +1185,39 @@ public class LiveHelper {
             }
         });
     }
+
+    /**
+     * update contact list
+     *
+     * @param list
+     */
+    public void setAppGiftList(Map<Integer, Gift> list) {
+        if(list == null){
+            if (appGiftList != null) {
+                appGiftList.clear();
+            }
+            return;
+        }
+
+        appGiftList = list;
+    }
+
+    /**
+     * get contact list
+     *
+     * @return
+     */
+    public Map<Integer, Gift> getAppGiftList() {
+        if (appGiftList == null || appGiftList.size()==0) {
+            appGiftList = demoModel.getAppGiftList();
+        }
+
+        // return a empty non-null object to avoid app crash
+        if(appGiftList == null){
+            return new Hashtable<Integer, Gift>();
+        }
+
+        return appGiftList;
+    }
+
 }

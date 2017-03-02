@@ -31,8 +31,6 @@ public class DbOpenHelper extends SQLiteOpenHelper{
 			+ UserDao.COLUMN_NAME_AVATAR + " TEXT, "
 			+ UserDao.COLUMN_NAME_ID + " TEXT PRIMARY KEY);";
 
-
-
 	private static final String CREATE_PREF_TABLE = "CREATE TABLE "
 			+ UserDao.PREF_TABLE_NAME + " ("
 			+ UserDao.COLUMN_NAME_DISABLED_GROUPS + " TEXT, "
@@ -49,6 +47,14 @@ public class DbOpenHelper extends SQLiteOpenHelper{
 			+ UserDao.USER_COLUMN_NAME_AVATAR_TYPE + " INTEGER,"
 			+ UserDao.USER_COLUMN_NAME_AVATAR_UPDATE_TIME + " TEXT);";
 
+
+	private static final String GIFT_TABLE_CREATE = "CREATE TABLE "
+			+ UserDao.GIFT_TABLE_NAME + " ("
+			+ UserDao.GIFT_COLUMN_NAME + " TEXT, "
+			+ UserDao.GIFT_COLUMN_URL + " TEXT, "
+			+ UserDao.GIFT_COLUMN_PRICE + " INTEGER, "
+			+ UserDao.GIFT_COLUMN_ID + " INTEGER PRIMARY KEY);";
+
 	private DbOpenHelper(Context context) {
 		super(context, getUserDatabaseName(), null, DATABASE_VERSION);
 	}
@@ -61,7 +67,7 @@ public class DbOpenHelper extends SQLiteOpenHelper{
 	}
 
 	private static String getUserDatabaseName() {
-		return LiveHelper.getInstance().getCurrentUsernName() + "_demo.db";
+		return  LiveHelper.getInstance().getCurrentUsernName() + "_demo.db";
 	}
 
 	@Override
@@ -69,6 +75,7 @@ public class DbOpenHelper extends SQLiteOpenHelper{
 		db.execSQL(USERNAME_TABLE_CREATE);
 		db.execSQL(CREATE_PREF_TABLE);
 		db.execSQL(USER_TABLE_CREATE);
+		db.execSQL(GIFT_TABLE_CREATE);
 	}
 
 	@Override
