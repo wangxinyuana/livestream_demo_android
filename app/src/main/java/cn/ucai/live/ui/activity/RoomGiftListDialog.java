@@ -1,28 +1,38 @@
 package cn.ucai.live.ui.activity;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.hyphenate.easeui.utils.EaseUserUtils;
-import com.hyphenate.easeui.widget.EaseImageView;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import butterknife.Unbinder;
+import cn.ucai.live.I;
+import cn.ucai.live.LiveHelper;
 import cn.ucai.live.R;
+import cn.ucai.live.data.model.Gift;
 
 /**
  * Created by wei on 2016/7/25.
@@ -30,12 +40,20 @@ import cn.ucai.live.R;
 public class RoomGiftListDialog extends DialogFragment {
 
     Unbinder unbinder;
-    @BindView(R.id.tv_username) TextView usernameView;
-    @BindView(R.id.btn_mentions) Button mentionBtn;
-    @BindView(R.id.dialog_user_avatar) EaseImageView mDialogUserAvatar;
+    @BindView(R.id.rv_gift)
+    RecyclerView mRvGift;
+    @BindView(R.id.tv_my_bill)
+    TextView mTvMyBill;
+    @BindView(R.id.tv_recharge)
+    TextView mTvRecharge;
+    GridLayoutManager gm;
+    GiftAdapter adapter;
+
+    List<Gift> mGiftList = new ArrayList<>();
 
     private String username;
-//显示用户打赏列表
+
+    //显示用户打赏列表
     public static RoomGiftListDialog newInstance() {
         RoomGiftListDialog dialog = new RoomGiftListDialog();
         return dialog;
@@ -49,10 +67,24 @@ public class RoomGiftListDialog extends DialogFragment {
         unbinder = ButterKnife.bind(this, view);
         return view;
     }
-//只需要显示商品
+
+    //只需要显示商品
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        gm=new GridLayoutManager(getContext(), I.GIFT_COUMN_COUNT);
+        mRvGift.setLayoutManager(gm);
+        adapter=new GiftAdapter(getContext(),mGiftList);
+        mRvGift.setAdapter(adapter);
+        initData();
+    }
+
+    private void initData() {
+        Map<Integer, Gift> map = LiveHelper.getInstance().getAppGiftList();
+              Iterator<Map.Entry<Integer, Gift>> iterator = map.entrySet().iterator();
+       while (iterator.hasNext()) {
+           mGiftList.add(iterator.next().getValue());
+        }
     }
 
 
@@ -65,7 +97,6 @@ public class RoomGiftListDialog extends DialogFragment {
     interface UserDetailsDialogListener {
         void onMentionClick(String username);
     }
-
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -91,5 +122,50 @@ public class RoomGiftListDialog extends DialogFragment {
     public void onDestroyView() {
         super.onDestroyView();
         unbinder.unbind();
+    }
+    class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder> {
+        Context mContext;
+        List<Gift> mList;
+
+        public GiftAdapter(Context context, List<Gift> list) {
+            mContext = context;
+            mList = list;
+        }
+
+        @Override
+        public GiftViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            GiftViewHolder holder = new GiftViewHolder(View.inflate(mContext, R.layout.item_gift, null));
+            return holder;
+        }
+
+        @Override
+        public void onBindViewHolder(GiftViewHolder holder, int position) {
+            Gift gift = mList.get(position);
+            holder.mTvGiftName.setText(gift.getGname());
+            holder.mTvGiftPrice.setText(String.valueOf(gift.getGprice()));
+            EaseUserUtils.setAppUserAvatarByPath(mContext,gift.getGurl(),holder.mIvGiftThumb,I.TYPE_GIFT);
+            holder.mLayoutGift.setTag(gift.getId());
+        }
+
+        @Override
+        public int getItemCount() {
+            return mList != null ? mList.size() : 0;
+        }
+
+        class GiftViewHolder extends RecyclerView.ViewHolder {
+            @BindView(R.id.ivGiftThumb)
+            ImageView mIvGiftThumb;
+            @BindView(R.id.tvGiftName)
+            TextView mTvGiftName;
+            @BindView(R.id.tvGiftPrice)
+            TextView mTvGiftPrice;
+            @BindView(R.id.layout_gift)
+            LinearLayout mLayoutGift;
+
+            GiftViewHolder(View view) {
+                super(view);
+                ButterKnife.bind(this, view);
+            }
+        }
     }
 }

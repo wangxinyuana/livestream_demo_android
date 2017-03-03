@@ -97,8 +97,8 @@ public class EaseUserUtils {
     public static void setAppUserAvatarByPath(Context context,String path,ImageView imageView,String groupId){
         Log.e(TAG,"setAppUserAvatarByPath,path="+path);
        int default_avatar=R.drawable.default_hd_avatar;
-        if (groupId!=null){
-            default_avatar=R.drawable.ease_group_icon;
+        if (groupId!=null&&groupId.equals("cn.ucai.live.gift")){
+            default_avatar=R.drawable.gift_star;
         }
         if (path != null ) {
             try {
