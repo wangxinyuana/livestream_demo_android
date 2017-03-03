@@ -252,7 +252,7 @@ public abstract class LiveBaseActivity extends BaseActivity {
         if (username.equals(chatroomId)) {
           if (message.getBooleanAttribute(LiveConstants.EXTRA_IS_BARRAGE_MSG, false)) {
             barrageLayout.addBarrage(((EMTextMessageBody) message.getBody()).getMessage(),
-                    message.getFrom());
+                    message.getFrom(),message.getStringAttribute(I.User.NICK,message.getFrom()));
           }
           messageView.refreshSelectLast();
         } else {
@@ -302,11 +302,16 @@ public abstract class LiveBaseActivity extends BaseActivity {
         messageView.setMessageViewListener(new RoomMessagesView.MessageViewListener() {
           @Override public void onMessageSend(String content) {
             EMMessage message = EMMessage.createTxtSendMessage(content, chatroomId);
+            //刷新消息，获得发送消息着的昵称和头像
+            User user = EaseUserUtils.getAppUserInfo(EMClient.getInstance().getCurrentUser());
+            message.setAttribute(I.User.NICK,user.getMUserNick());
             if (messageView.isBarrageShow) {
               message.setAttribute(LiveConstants.EXTRA_IS_BARRAGE_MSG, true);
-              barrageLayout.addBarrage(content, EMClient.getInstance().getCurrentUser());
+              barrageLayout.addBarrage(((EMTextMessageBody) message.getBody()).getMessage(),
+                      message.getFrom(),message.getStringAttribute(I.User.NICK,message.getFrom()));
             }
             message.setChatType(EMMessage.ChatType.ChatRoom);
+
             EMClient.getInstance().chatManager().sendMessage(message);
             message.setMessageStatusCallback(new EMCallBack() {
               @Override public void onSuccess() {
