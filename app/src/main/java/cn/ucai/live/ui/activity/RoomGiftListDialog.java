@@ -22,6 +22,8 @@ import android.widget.TextView;
 import com.hyphenate.easeui.utils.EaseUserUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -48,12 +50,10 @@ public class RoomGiftListDialog extends DialogFragment {
     TextView mTvRecharge;
     GridLayoutManager gm;
     GiftAdapter adapter;
-
     List<Gift> mGiftList = new ArrayList<>();
 
     private String username;
 
-    //显示用户打赏列表
     public static RoomGiftListDialog newInstance() {
         RoomGiftListDialog dialog = new RoomGiftListDialog();
         return dialog;
@@ -68,34 +68,36 @@ public class RoomGiftListDialog extends DialogFragment {
         return view;
     }
 
-    //只需要显示商品
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        gm=new GridLayoutManager(getContext(), I.GIFT_COUMN_COUNT);
+        gm = new GridLayoutManager(getContext(), I.GIFT_COUMN_COUNT);
         mRvGift.setLayoutManager(gm);
-        adapter=new GiftAdapter(getContext(),mGiftList);
+        adapter = new GiftAdapter(getContext(),mGiftList);
         mRvGift.setAdapter(adapter);
         initData();
     }
 
     private void initData() {
         Map<Integer, Gift> map = LiveHelper.getInstance().getAppGiftList();
-              Iterator<Map.Entry<Integer, Gift>> iterator = map.entrySet().iterator();
-       while (iterator.hasNext()) {
-           mGiftList.add(iterator.next().getValue());
+        Iterator<Map.Entry<Integer, Gift>> iterator = map.entrySet().iterator();
+        while (iterator.hasNext()){
+            mGiftList.add(iterator.next().getValue());
         }
+
+        Collections.sort(mGiftList, new Comparator<Gift>() {
+            @Override
+            public int compare(Gift lhs, Gift rhs) {
+                return lhs.getId().compareTo(rhs.getId());
+            }
+        });
+        adapter.notifyDataSetChanged();
     }
 
+    private View.OnClickListener mListener;
 
-    private UserDetailsDialogListener dialogListener;
-
-    public void setUserDetailsDialogListener(UserDetailsDialogListener dialogListener) {
-        this.dialogListener = dialogListener;
-    }
-
-    interface UserDetailsDialogListener {
-        void onMentionClick(String username);
+    public void setGiftOnClickListener(View.OnClickListener listener) {
+        this.mListener = listener;
     }
 
     @Override
@@ -123,6 +125,7 @@ public class RoomGiftListDialog extends DialogFragment {
         super.onDestroyView();
         unbinder.unbind();
     }
+
     class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder> {
         Context mContext;
         List<Gift> mList;
@@ -165,6 +168,7 @@ public class RoomGiftListDialog extends DialogFragment {
             GiftViewHolder(View view) {
                 super(view);
                 ButterKnife.bind(this, view);
+                mLayoutGift.setOnClickListener(mListener);
             }
         }
     }
