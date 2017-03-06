@@ -156,7 +156,7 @@ public class NetDao {
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_DELETE_CHATROOM)
                 .addParam("auth", "1IFgE")
-                .addParam("chatroomId", chatroomId)
+                .addParam("chatRoomId", chatroomId)
                 .targetClass(String.class)
                 .execute(listener);
     }
@@ -171,7 +171,7 @@ public class NetDao {
     public static void loadChange(Context context,String username, OnCompleteListener<String> listener) {
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_BALANCE)
-                .addParam("username",username)
+                .addParam("uname",username)
                 .targetClass(String.class)
                 .execute(listener);
     }
