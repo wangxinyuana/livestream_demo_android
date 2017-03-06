@@ -18,8 +18,8 @@ import cn.ucai.live.utils.OnCompleteListener;
  */
 
 public class NetDao {
-    public static void register(Context context,String username,String nick,String password,
-                                OnCompleteListener<String> listener){
+    public static void register(Context context,String username, String nick, String password,
+                                OnCompleteListener<String> listener) {
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_REGISTER)
                 .addParam(I.User.USER_NAME,username)
@@ -39,8 +39,7 @@ public class NetDao {
                 .execute(listener);
     }
 
-    public static void login(Context context, String username, String password,
-                             OnCompleteListener<String> listener){
+    public static void login(Context context, String username, String password, OnCompleteListener<String> listener) {
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_LOGIN)
                 .addParam(I.User.USER_NAME,username)
@@ -50,7 +49,7 @@ public class NetDao {
     }
 
     public static void getUserInfoByUsername(Context context, String username,
-                                             OnCompleteListener<String> listener){
+                                             OnCompleteListener<String> listener) {
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_FIND_USER)
                 .addParam(I.User.USER_NAME,username)
@@ -69,7 +68,7 @@ public class NetDao {
     }
 
     public static void uploadUserAvatar(Context context, String username, File file,
-                                        OnCompleteListener<String> listener){
+                                        OnCompleteListener<String> listener) {
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_UPDATE_AVATAR)
                 .addParam(I.NAME_OR_HXID,username)
@@ -81,7 +80,7 @@ public class NetDao {
     }
 
     public static void addContact(Context context, String username, String cname,
-                                  OnCompleteListener<String> listener){
+                                  OnCompleteListener<String> listener) {
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_ADD_CONTACT)
                 .addParam(I.Contact.USER_NAME,username)
@@ -89,76 +88,91 @@ public class NetDao {
                 .targetClass(String.class)
                 .execute(listener);
     }
-    public static void loadContact(Context context,String username,OnCompleteListener<String>listener){
+
+    public static void loadContact(Context context,String username, OnCompleteListener<String> listener) {
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_DOWNLOAD_CONTACT_ALL_LIST)
                 .addParam(I.Contact.USER_NAME,username)
                 .targetClass(String.class)
                 .execute(listener);
     }
+
     public static void removeContact(Context context, String username, String cname,
-                               OnCompleteListener<String> listener){
+                                     OnCompleteListener<String> listener){
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_DELETE_CONTACT)
-                .addParam(I.Contact.USER_NAME,username)
-                .addParam(I.Contact.CU_NAME,cname)
+                .addParam(I.Contact.USER_NAME, username)
+                .addParam(I.Contact.CU_NAME, cname)
                 .targetClass(String.class)
                 .execute(listener);
     }
 
     public static void createGroup(Context context, EMGroup group, File file, OnCompleteListener listener) {
-        OkHttpUtils<String> utils=new OkHttpUtils<>(context);
+        OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_CREATE_GROUP)
-                .addParam(I.Group.HX_ID,group.getGroupId())
-                .addParam(I.Group.NAME,group.getGroupName())
-                .addParam(I.Group.DESCRIPTION,group.getDescription())
-                .addParam(I.Group.OWNER,group.getOwner())
-                .addParam(I.Group.IS_PUBLIC,String.valueOf(group.isAllowInvites()))
+                .addParam(I.Group.HX_ID, group.getGroupId())
+                .addParam(I.Group.NAME, group.getGroupName())
+                .addParam(I.Group.DESCRIPTION, group.getDescription())
+                .addParam(I.Group.OWNER, group.getOwner())
+                .addParam(I.Group.IS_PUBLIC, String.valueOf(group.isAllowInvites()))
                 .addFile2(file)
                 .targetClass(String.class)
-              //  .addFile2(file)
+                //  .addFile2(file)
                 .post()
                 .execute(listener);
     }
-    public static void addGroupMembers(Context context,String members,String hxid,
-                                       OnCompleteListener<String> listener){
-          OkHttpUtils<String> utils = new OkHttpUtils<>(context);
-           utils.setRequestUrl(I.REQUEST_ADD_GROUP_MEMBERS)
-                   .addParam(I.Member.USER_NAME,members)
-                   .addParam(I.Member.GROUP_HX_ID,hxid)
-                   .targetClass(String.class)
-                   .execute(listener);
-           }
-    public static void loadLiveList(Context context, OnCompleteListener <String>listener){
+
+    public static void addGroupMembers(Context context, String members, String hxid,
+                                       OnCompleteListener<String> listener) {
+        OkHttpUtils<String> utils = new OkHttpUtils<>(context);
+        utils.setRequestUrl(I.REQUEST_ADD_GROUP_MEMBERS)
+                .addParam(I.Member.USER_NAME, members)
+                .addParam(I.Member.GROUP_HX_ID, hxid)
+                .targetClass(String.class)
+                .execute(listener);
+    }
+
+    public static void loadLiveList(Context context, OnCompleteListener<String> listener) {
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_GET_ALL_CHATROOM)
                 .targetClass(String.class)
                 .execute(listener);
     }
-    public static void creatLive(Context context, User user,OnCompleteListener<String> listener){
+
+    public static void creatLive(Context context, User user, OnCompleteListener<String> listener) {
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_CREATE_CHATROOM)
-                .addParam("auth","1IFgE")
-                .addParam("name",user.getMUserNick()+"的直播间")
-                .addParam("description",user.getMUserNick()+"的直播间")
-                .addParam("owner",user.getMUserName())
-                .addParam("maxusers","300")
-                .addParam("member",user.getMUserName())
+                .addParam("auth", "1IFgE")
+                .addParam("name", user.getMUserNick() + "的直播间")
+                .addParam("description", user.getMUserNick() + "的直播间")
+                .addParam("owner", user.getMUserName())
+                .addParam("maxusers", "300")
+                .addParam("member", user.getMUserName())
                 .targetClass(String.class)
                 .execute(listener);
     }
-    public static void removeLive(Context context,String chatroomId,OnCompleteListener<String>listener){
+
+    public static void removeLive(Context context, String chatroomId, OnCompleteListener<String> listener) {
         OkHttpUtils<String> utils = new OkHttpUtils<>(context);
         utils.setRequestUrl(I.REQUEST_DELETE_CHATROOM)
-                .addParam("auth","1IFgE")
-                .addParam("chatroomId",chatroomId)
+                .addParam("auth", "1IFgE")
+                .addParam("chatroomId", chatroomId)
                 .targetClass(String.class)
                 .execute(listener);
     }
-    public static void loadAllGift(Context context,OnCompleteListener<String> listener){
-              OkHttpUtils<String> utils = new OkHttpUtils<>(context);
-             utils.setRequestUrl(I.REQUEST_ALL_GIFTS)
-                             .targetClass(String.class)
-                          .execute(listener);
-       }
+
+    public static void loadAllGift(Context context, OnCompleteListener<String> listener) {
+        OkHttpUtils<String> utils = new OkHttpUtils<>(context);
+        utils.setRequestUrl(I.REQUEST_ALL_GIFTS)
+                .targetClass(String.class)
+                .execute(listener);
+    }
+
+    public static void loadChange(Context context,String username, OnCompleteListener<String> listener) {
+        OkHttpUtils<String> utils = new OkHttpUtils<>(context);
+        utils.setRequestUrl(I.REQUEST_BALANCE)
+                .addParam("username",username)
+                .targetClass(String.class)
+                .execute(listener);
+    }
 }
